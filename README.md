@@ -12,6 +12,7 @@
 
 ## 技术栈
 
+- **CI/CD**: GitHub Actions + Trivy (容器安全扫描)
 - **后端**: FastAPI + LangChain
 - **LLM**: DeepSeek (中文) + GPT-4o-mini (荷兰语/英语)
 - **向量数据库**: Qdrant
