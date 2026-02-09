@@ -33,7 +33,7 @@ jobs:
 
       - name: Start Application Stack
         run: |
-          docker-compose -f docker-compose.prod.yml up -d --build
+          docker compose -f docker-compose.prod.yml up -d --build
 
       - name: Wait for services to be healthy
         run: |
