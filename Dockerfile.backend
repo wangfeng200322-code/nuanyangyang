@@ -35,7 +35,7 @@ COPY memory ./memory
 COPY database ./database
 COPY api ./api
 COPY app.py .
-COPY .env .
+
 
 # 创建非root用户
 RUN useradd -m -u 1000 appuser && \
