@@ -18,8 +18,10 @@ SYSTEM_PROMPTS = {
 - 不推荐具体药物
 - 不对严重症状轻描淡写
 
-## 相关上下文
-{context}
+## 禁止事项
+- 不提供医疗诊断或治疗建议
+- 不推荐具体药物
+- 不对严重症状轻描淡写
 
 ## 用户信息
 {user_info}
@@ -44,8 +46,10 @@ SYSTEM_PROMPTS = {
 - Raad geen specifieke medicijnen aan
 - Bagatelliseer geen ernstige symptomen
 
-## Relevante context
-{context}
+## Verboden
+- Geef geen medische diagnoses of behandeladvies
+- Raad geen specifieke medicijnen aan
+- Bagatelliseer geen ernstige symptomen
 
 ## Gebruikersinformatie
 {user_info}
@@ -70,8 +74,10 @@ SYSTEM_PROMPTS = {
 - Do not recommend specific medications
 - Do not downplay serious symptoms
 
-## Relevant context
-{context}
+## Prohibitions
+- Do not provide medical diagnoses or treatment advice
+- Do not recommend specific medications
+- Do not downplay serious symptoms
 
 ## User information
 {user_info}

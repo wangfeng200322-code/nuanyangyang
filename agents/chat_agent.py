@@ -39,21 +39,39 @@ class ChatAgent:
         )
         
         if similar_convs:
-            context = "\n".join([conv["text"] for conv in similar_convs])
-        else:
+            # 使用XML标签包裹上下文，防止提示词注入
+            context_text = "\n".join([f"<conversation>\n{conv['text']}\n</conversation>" for conv in similar_convs])
+            
+            # 将上下文附加到用户消息中，而不是系统提示词
             if language == "zh":
-                context = "无历史对话"
+                full_user_message = f"""<relevant_context>
+{context_text}
+</relevant_context>
+
+请根据上述相关上下文（如果有用的话）回答用户的问题：
+{user_message}"""
             elif language == "nl":
-                context = "Geen eerdere gesprekken"
+                full_user_message = f"""<relevant_context>
+{context_text}
+</relevant_context>
+
+Beantwoord de vraag van de gebruiker op basis van de bovenstaande context (indien relevant):
+{user_message}"""
             else:
-                context = "No previous conversations"
+                full_user_message = f"""<relevant_context>
+{context_text}
+</relevant_context>
+
+Answer the user's question based on the relevant context above (if applicable):
+{user_message}"""
+        else:
+            full_user_message = user_message
         
         # 3. 获取会话记忆
         history = self.conversation_memory.get_messages(user_id)
         
-        # 4. 构建系统提示词
+        # 4. 构建系统提示词 (不再包含context)
         system_prompt = SYSTEM_PROMPTS[language].format(
-            context=context,
             user_info=user_info
         )
         
@@ -61,7 +79,7 @@ class ChatAgent:
         bot_response = await self.llm_manager.chat(
             language=language,
             system_prompt=system_prompt,
-            user_message=user_message,
+            user_message=full_user_message,  # 使用包含上下文的完整消息
             history=history
         )
         
