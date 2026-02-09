@@ -91,7 +91,7 @@ async def chat(message: ChatMessage, db: Session = Depends(get_db)):
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
         return {
-            "reply": f"抱歉，我遇到了一些问题。请稍后再试。(Error: {str(e)})",
+            "reply": "抱歉，我遇到了一些问题。请稍后再试。",
             "language": "zh"
         }
 
