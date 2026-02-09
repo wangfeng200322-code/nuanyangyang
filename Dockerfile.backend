@@ -33,7 +33,7 @@ COPY core ./core
 COPY agents ./agents
 COPY memory ./memory
 COPY database ./database
-COPY api ./api
+
 COPY app.py .
 
 
