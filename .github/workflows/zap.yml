@@ -1,0 +1,82 @@
+name: OWASP ZAP DAST Scan
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  zap-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "DEEPSEEK_API_KEY=dummy_key_for_ci_scan" >> .env
+          echo "OPENAI_API_KEY=dummy_key_for_ci_scan" >> .env
+          echo "POSTGRES_USER=nuanyangyang" >> .env
+          echo "POSTGRES_PASSWORD=nuanyangyang123" >> .env
+          echo "POSTGRES_DB=nuanyangyang" >> .env
+          echo "EMBEDDING_MODEL=bge-m3" >> .env
+
+      - name: Start Application Stack
+        run: |
+          docker-compose -f docker-compose.prod.yml up -d --build
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services..."
+          # Naive wait loop
+          timeout 300s bash -c '
+          while true; do
+            if curl -s http://localhost:8000/api/health | grep "healthy"; then
+              echo "Backend is up!"
+              break
+            fi
+            echo "Waiting for backend..."
+            sleep 5
+          done'
+          
+          # Allow frontend Nginx to start
+          sleep 10
+          if curl -s -o /dev/null -w "%{http_code}" http://localhost:80 | grep "200"; then
+             echo "Frontend is up!"
+          else
+             echo "Frontend check failed but continuing..."
+          fi
+
+      - name: Run ZAP Baseline Scan
+        # Using docker run directly to avoid networking issues with localhost
+        # --network host allows accessing the runner's localhost (where our app is running on port 80)
+        run: |
+          chmod 777 $(pwd)
+          docker run -v $(pwd):/zap/wrk/:rw --network host -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://localhost:80 \
+            -g gen.conf \
+            -r zap-report.html \
+            -x zap-report.xml \
+            -I \
+            || exit 0
+            # '|| exit 0' ensures the job doesn't fail just because ZAP found alerts (we want to see them first).
+            # Remove '|| exit 0' to fail on alerts.
+
+      - name: Upload ZAP Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-scan-report
+          path: |
+            zap-report.html
+            zap-report.xml

@@ -15,6 +15,7 @@
 - **CI/CD**:
   - GitHub Actions + Trivy (主要扫描)
   - GitHub Actions + Snyk (对比扫描，需要 `SNYK_TOKEN`)
+  - GitHub Actions + OWASP ZAP (动态安全测试)
 - **后端**: FastAPI + LangChain
 - **LLM**: DeepSeek (中文) + GPT-4o-mini (荷兰语/英语)
 - **向量数据库**: Qdrant
