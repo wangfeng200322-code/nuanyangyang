@@ -22,9 +22,11 @@ WORKDIR /app
 COPY requirements.txt .
 
 # 安装Python依赖
-# 1. 先安装CPU版本的PyTorch (大幅减小体积)
-# 2. 再安装其他依赖
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+# 1. 升级构建工具 (解决wheel漏洞)
+# 2. 安装CPU版本的PyTorch (大幅减小体积)
+# 3. 安装其他依赖
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码

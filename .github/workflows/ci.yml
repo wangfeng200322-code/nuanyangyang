@@ -31,6 +31,7 @@ jobs:
       - name: Run Trivy Vulnerability Scanner (Backend)
         uses: aquasecurity/trivy-action@master
         with:
+          cache: 'false'
           image-ref: 'nuanyangyang-backend:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
@@ -52,6 +53,7 @@ jobs:
       - name: Run Trivy Vulnerability Scanner (Frontend)
         uses: aquasecurity/trivy-action@master
         with:
+          cache: 'false'
           image-ref: 'nuanyangyang-frontend:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
