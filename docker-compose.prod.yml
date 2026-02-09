@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # 前端服务 (Nginx)
+  # ============================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: nuanyangyang-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - nuanyangyang-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ============================================
+  # 后端服务 (FastAPI)
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: nuanyangyang-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-nuanyangyang}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nuanyangyang123}
+      - POSTGRES_DB=${POSTGRES_DB:-nuanyangyang}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-bge-m3}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    networks:
+      - nuanyangyang-network
+    restart: unless-stopped
+    volumes:
+      # 挂载模型缓存目录（避免重复下载BGE-M3）
+      - model-cache:/home/appuser/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # PostgreSQL数据库
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: nuanyangyang-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-nuanyangyang}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nuanyangyang123}
+      - POSTGRES_DB=${POSTGRES_DB:-nuanyangyang}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - nuanyangyang-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nuanyangyang}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis缓存
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: nuanyangyang-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - nuanyangyang-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ============================================
+  # Qdrant向量数据库
+  # ============================================
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: nuanyangyang-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - nuanyangyang-network
+    restart: unless-stopped
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+
+# ============================================
+# 网络配置
+# ============================================
+networks:
+  nuanyangyang-network:
+    driver: bridge
+
+# ============================================
+# 数据卷
+# ============================================
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  qdrant-data:
+    driver: local
+  model-cache:
+    driver: local

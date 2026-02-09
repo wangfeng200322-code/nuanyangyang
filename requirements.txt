@@ -1,4 +1,29 @@
+# 现有依赖
 fastapi
 uvicorn
 requests
 python-dotenv
+
+# AI框架
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.13
+
+# 向量数据库
+qdrant-client>=1.11.0
+
+# 关系数据库
+psycopg2-binary
+sqlalchemy>=2.0.0
+
+# 缓存
+redis>=5.0.0
+
+# 工具库
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+langdetect
+
+# 本地Embedding模型（开源方案）
+sentence-transformers>=2.2.0
+
