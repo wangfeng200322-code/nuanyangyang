@@ -12,7 +12,9 @@
 
 ## 技术栈
 
-- **CI/CD**: GitHub Actions + Trivy (容器安全扫描)
+- **CI/CD**:
+  - GitHub Actions + Trivy (主要扫描)
+  - GitHub Actions + Snyk (对比扫描，需要 `SNYK_TOKEN`)
 - **后端**: FastAPI + LangChain
 - **LLM**: DeepSeek (中文) + GPT-4o-mini (荷兰语/英语)
 - **向量数据库**: Qdrant

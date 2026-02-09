@@ -1,0 +1,47 @@
+name: Snyk Security Scan
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  snyk-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+
+      - uses: actions/checkout@v4
+
+      - name: Build Backend Docker Image
+        run: docker build -f Dockerfile.backend -t nuanyangyang-backend .
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: nuanyangyang-backend
+          args: --file=Dockerfile.backend --severity-threshold=high
+
+  snyk-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Frontend Docker Image
+        run: docker build -f Dockerfile.frontend -t nuanyangyang-frontend .
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: nuanyangyang-frontend
+          args: --file=Dockerfile.frontend --severity-threshold=high
